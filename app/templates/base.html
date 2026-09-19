@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Pons - Question Bank Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <span class="text-xl font-bold text-gray-900">Media Pons</span>
+        </div>
+    </header>
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        {% block content %}
+        <h1 class="text-3xl font-bold text-blue-600">Coming soon</h1>
+        <p class="mt-2 text-gray-600">The question bank is being set up. Check back later.</p>
+        {% endblock %}
+    </main>
+</body>
+</html>
