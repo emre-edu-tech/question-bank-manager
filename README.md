@@ -51,7 +51,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-7. After a new update run the following command to restart the application server
+7. After a new update run the following command on remote server to restart the application server
 
 ```bash
 git pull
