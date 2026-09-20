@@ -53,6 +53,7 @@ question-bank-manager/
 │       ├── admin/
 │       └── public/
 ├── migrations/                 # Flask-Migrate
+├── instance/                   # SQLite database lives here (app.db) — folder committed, contents gitignored
 ├── config.py
 ├── app.py                      # LOCAL DEV entry point only
 ├── wsgi.py                     # PRODUCTION entry point — Passenger, committed to git

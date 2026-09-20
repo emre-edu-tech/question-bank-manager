@@ -70,11 +70,11 @@ Read `00-overview.md` first for the folder structure, tech stack, and route map 
 10. **Environment files**
     - `.env.example` listing `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `FLASK_ENV`.
     - Create your own local `.env` from it (not committed).
-    - `.flaskenv` (committed — no secrets in it) containing `FLASK_APP=app.py`, so every `flask` CLI command (`flask run`, `flask db migrate`, `flask seed-db` in later steps) targets the local dev entry point unambiguously. This has no effect on production — Passenger imports `wsgi.py` directly and never consults `FLASK_APP`.
+    - `.flaskenv` (not committed — create one per environment, locally and on the server) containing `FLASK_APP=app.py`, so every `flask` CLI command (`flask run`, `flask db migrate`, `flask seed-db` in later steps) targets the dev entry point unambiguously. This has no effect on production serving — Passenger imports `wsgi.py` directly and never consults `FLASK_APP`.
 
 11. **.gitignore**
-    - Ignore: `venv/`, `node_modules/`, `instance/`, `__pycache__/`, `*.pyc`, `.env`
-    - Do **NOT** ignore: `app/static/dist/output.css`, `app.py`, `wsgi.py`, `.flaskenv` — all committed on purpose.
+    - Ignore: `venv/`, `node_modules/`, `instance/*`, `__pycache__/`, `*.pyc`, `.env`, `.flaskenv`
+    - Do **NOT** ignore: the `instance/` folder itself (only its contents) — the folder is committed so fresh clones and the server have it, since SQLite cannot create `app.db` if the folder is missing. Also commit `app/static/dist/output.css`, `app.py`, `wsgi.py` on purpose.
 
 ## Acceptance criteria
 

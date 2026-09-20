@@ -1,6 +1,30 @@
 # Question Bank Manager
 
-## Project Deployment to Plesk VPS (with nginx as Web Server, Phusion Passenger as Application Server)
+## DATABASE MIGRATION
+
+1. **Commands to run on the remote server**
+
+With the virtual environment activated
+
+```bash
+export FLASK_APP=app.py
+flask db upgrade
+```
+
+**Important Note**: Setting `export FLASK_APP=app.py` explicitly is mandatory here if you do not want to create `.fleskenv` file on the server. To be on the safe side while running flask commands, you can create a .flaskenv file special for remote server just to run the flask commands on remote server. Then you do not need to run `export FLASK_APP=app.py` command.
+
+That flask command creates `instance/app.db` on the server with **all four tables**.
+
+2. Seeding is optional. Do it only if you want the sample quiz that has been locally generated on remote website. Note that there is a guard that refuses `seed-db` command to run on a non-empty database.
+
+```bash
+flask seed-db
+```
+
+## DEPLOYMENT
+
+### Project Deployment to Plesk VPS (with nginx as Web Server, Phusion Passenger as Application Server)
+
 1. `wsgi.py` file content
 
 ```python

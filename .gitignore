@@ -1,7 +1,9 @@
 venv/
 .venv/
 node_modules/
-instance/
+# track the instance/ folder itself, ignore the database inside it
+instance/*
+!instance/.gitkeep
 __pycache__/
 *.pyc
 .env
