@@ -7,7 +7,7 @@ This step includes grading. Grading is part of the quiz-taking experience, not a
 ## Tasks
 
 1. **Landing page** (`GET /`, `app/public/routes.py`)
-   - Simple, appealing hero section: Media Pons wordmark, a short description of the app, a clear call-to-action button linking to `/quizzes`.
+    - Simple, appealing hero section: BilişimTest wordmark, a short description of the app, a clear call-to-action button linking to `/quizzes`.
    - Fully responsive; this is the page a student sees first, so it should look intentional, not like a placeholder.
 
 2. **Quiz listing** (`GET /quizzes`)

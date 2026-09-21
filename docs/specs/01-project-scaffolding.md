@@ -35,7 +35,7 @@ Read `00-overview.md` first for the folder structure, tech stack, and route map 
    - Each blueprint's `routes.py` gets one placeholder route for now (e.g. `public` → `/` returns a rendered `base.html`; `auth` → `/admin/login` returns plain text "login placeholder"; `admin` → `/admin` returns plain text "admin placeholder"). These get replaced in later steps.
 
 6. **Templates**
-   - `app/templates/base.html`: HTML skeleton, links to `static/dist/output.css`, a simple header with the "Media Pons" text wordmark, and `{% block content %}{% endblock %}`.
+    - `app/templates/base.html`: HTML skeleton, links to `static/dist/output.css`, a simple header with the "BilişimTest" text wordmark, and `{% block content %}{% endblock %}`.
    - Public's placeholder route renders `base.html` with a short "coming soon" message in the content block.
 
 7. **Tailwind pipeline**
@@ -80,7 +80,7 @@ Read `00-overview.md` first for the folder structure, tech stack, and route map 
 
 - `python app.py` starts the dev server without errors.
 - `flask run` also starts it without errors or needing `FLASK_APP` set manually (picked up from `.flaskenv`).
-- `/` renders `base.html` with the Media Pons wordmark and the Tailwind-compiled styles visibly applied (e.g. a styled heading, not unstyled browser default text).
+- `/` renders `base.html` with the BilişimTest wordmark and the Tailwind-compiled styles visibly applied (e.g. a styled heading, not unstyled browser default text).
 - `/admin` and `/admin/login` return their placeholder text with no errors.
 - `npm run build:css` runs clean and produces `app/static/dist/output.css`.
 - `wsgi.py` imports and calls `create_app()` without errors when run through `python -c "import wsgi"` — and is otherwise never used to run the app locally.

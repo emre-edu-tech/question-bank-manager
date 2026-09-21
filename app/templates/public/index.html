@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Media Pons - Eğlenceli Quizler{% endblock %}
+{% block title %}BilişimTest - Eğlenceli Quizler{% endblock %}
 
 {% block content %}
 <section class="text-center py-10 sm:py-16">
-    <p class="text-sm font-semibold uppercase tracking-widest text-blue-600">Media Pons</p>
+    <p class="text-sm font-semibold uppercase tracking-widest text-blue-600">BilişimTest</p>
     <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">Oyna, Öğren,<br class="sm:hidden"> Kendini Test Et!</h1>
-    <p class="mt-4 max-w-xl mx-auto text-lg text-gray-600">5. ve 6. sınıf öğrencileri için kısa ve eğlenceli quizler. Bir quiz seç, soruları cevapla ve kaç doğru yaptığını hemen gör.</p>
+    <p class="mt-4 max-w-xl mx-auto text-lg text-gray-600">Ortaokul öğrencileri için kısa ve eğlenceli bilişim quizleri. Bir quiz seç, soruları cevapla ve kaç doğru yaptığını hemen gör.</p>
     <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a href="{{ url_for('public.quiz_list') }}" class="w-full sm:w-auto inline-block rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow hover:bg-blue-700">Quizlere Başla</a>
         <span class="text-sm text-gray-500">Kayıt gerekmez, sonuçlar saklanmaz.</span>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ quiz.title }} - Media Pons{% endblock %}
+{% block title %}{{ quiz.title }} - BilişimTest{% endblock %}
 
 {% block content %}
 <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Tüm quizler</a>
@@ -24,7 +24,7 @@
         {% if question.image_path %}
         <img src="{{ url_for('static', filename=question.image_path) }}" alt="Soru görseli" class="mt-4 max-h-64 w-auto rounded-xl border" loading="lazy">
         {% endif %}
-        <div class="choices mt-4 grid gap-3" role="radiogroup" aria-label="Soru {{ loop.index }} seçenekleri">
+        <div class="choices mt-4 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Soru {{ loop.index }} seçenekleri">
             {% for letter, choice_text in [('A', question.choice_a), ('B', question.choice_b), ('C', question.choice_c), ('D', question.choice_d)] %}
             <label class="choice-label flex cursor-pointer items-center gap-3 rounded-xl border-2 border-gray-200 bg-gray-50 p-4 text-lg font-medium text-gray-900 hover:border-blue-400 hover:bg-blue-50" data-choice="{{ letter }}">
                 <input type="radio" name="question-{{ question.id }}" value="{{ letter }}" class="sr-only choice-input">

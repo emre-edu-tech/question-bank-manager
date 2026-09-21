@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Media Pons - Question Bank Manager{% endblock %}</title>
+    <title>{% block title %}BilişimTest - Ortaokul Bilişim Quizleri{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/logo.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-white shadow">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{{ url_for('public.index') }}" class="text-xl font-bold text-gray-900">Media Pons</a>
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="{{ url_for('public.index') }}" class="flex items-center gap-2 text-xl font-bold text-gray-900">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="BilişimTest logosu" class="h-8 w-8">
+                <span>BilişimTest</span>
+            </a>
             <nav>
                 <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Quizler</a>
             </nav>
         </div>
     </header>
-    <main class="max-w-4xl mx-auto px-4 py-8">
+    <main class="max-w-6xl mx-auto px-4 py-8">
         {% block content %}
         <h1 class="text-3xl font-bold text-blue-600">Coming soon</h1>
         <p class="mt-2 text-gray-600">The question bank is being set up. Check back later.</p>
