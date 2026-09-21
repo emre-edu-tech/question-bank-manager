@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Quizler - Media Pons{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between">
+    <h1 class="text-3xl font-extrabold text-gray-900">Quizler</h1>
+    <a href="{{ url_for('public.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Ana sayfa</a>
+</div>
+
+{% if quizzes %}
+<div class="mt-6 grid gap-4 sm:grid-cols-2">
+    {% for quiz in quizzes %}
+    <a href="{{ url_for('public.quiz_detail', slug=quiz.slug) }}" class="block rounded-2xl bg-white p-6 shadow hover:shadow-lg border-2 border-transparent hover:border-blue-300">
+        <h2 class="text-xl font-bold text-gray-900">{{ quiz.title }}</h2>
+        <p class="mt-1 text-sm text-gray-500">{{ quiz.quiz_questions|length }} soru</p>
+        <span class="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-2.5 font-bold text-white">Teste Başla →</span>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="mt-6 rounded-2xl bg-white p-10 text-center shadow">
+    <p class="text-4xl">📭</p>
+    <h2 class="mt-3 text-xl font-bold text-gray-900">Henüz yayınlanmış quiz yok</h2>
+    <p class="mt-2 text-gray-600">Çok yakında burada eğlenceli quizler olacak. Lütfen sonra tekrar gel!</p>
+    <a href="{{ url_for('public.index') }}" class="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700">Ana sayfaya dön</a>
+</div>
+{% endif %}
+{% endblock %}

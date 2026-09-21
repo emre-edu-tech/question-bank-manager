@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Sayfa bulunamadı - Media Pons{% endblock %}
+
+{% block content %}
+<div class="rounded-2xl bg-white p-10 text-center shadow">
+    <p class="text-5xl">🔍</p>
+    <h1 class="mt-4 text-3xl font-extrabold text-gray-900">Oops! Bu sayfayı bulamadık.</h1>
+    <p class="mt-2 text-gray-600">Aradığın quiz taşınmış ya da hiç olmamış olabilir.</p>
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="{{ url_for('public.quiz_list') }}" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700">Quizlere dön</a>
+        <a href="{{ url_for('public.index') }}" class="rounded-xl border-2 border-gray-200 px-6 py-3 font-bold text-gray-700 hover:border-blue-300">Ana sayfa</a>
+    </div>
+</div>
+{% endblock %}

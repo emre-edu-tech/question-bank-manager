@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} - Media Pons{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Tüm quizler</a>
+<h1 class="mt-2 text-3xl font-extrabold text-gray-900">{{ quiz.title }}</h1>
+<p class="mt-1 text-gray-500">{{ quiz_questions|length }} soru • Bir şık seç, sonra en alttaki düğmeye bas.</p>
+
+<div id="score-banner" class="hidden mt-6 rounded-2xl bg-white p-6 text-center shadow border-2 border-blue-300">
+    <p id="score-text" class="text-3xl font-extrabold text-gray-900"></p>
+    <p class="mt-1 text-gray-600">Cevapların aşağıda yeşil ve kırmızı ile işaretlendi.</p>
+</div>
+
+<p id="quiz-error" class="hidden mt-4 rounded-xl bg-yellow-100 border-2 border-yellow-400 p-4 font-medium text-yellow-900"></p>
+
+<div id="quiz-container" data-slug="{{ quiz.slug }}" class="mt-6 space-y-6">
+    {% for qq in quiz_questions %}
+    {% set question = qq.question %}
+    <section class="question-card rounded-2xl bg-white p-5 sm:p-6 shadow" data-question-id="{{ question.id }}">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">
+            <span class="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-800">{{ loop.index }}</span>{{ question.text }}
+        </h2>
+        {% if question.image_path %}
+        <img src="{{ url_for('static', filename=question.image_path) }}" alt="Soru görseli" class="mt-4 max-h-64 w-auto rounded-xl border" loading="lazy">
+        {% endif %}
+        <div class="choices mt-4 grid gap-3" role="radiogroup" aria-label="Soru {{ loop.index }} seçenekleri">
+            {% for letter, choice_text in [('A', question.choice_a), ('B', question.choice_b), ('C', question.choice_c), ('D', question.choice_d)] %}
+            <label class="choice-label flex cursor-pointer items-center gap-3 rounded-xl border-2 border-gray-200 bg-gray-50 p-4 text-lg font-medium text-gray-900 hover:border-blue-400 hover:bg-blue-50" data-choice="{{ letter }}">
+                <input type="radio" name="question-{{ question.id }}" value="{{ letter }}" class="sr-only choice-input">
+                <span class="choice-letter flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white border-2 border-gray-300 font-bold">{{ letter }}</span>
+                <span>{{ choice_text }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        <p class="unanswered-warning hidden mt-3 rounded-xl bg-yellow-100 border-2 border-yellow-400 p-3 font-medium text-yellow-900">⚠️ Bu soruyu cevaplamadın — bir şık seç.</p>
+    </section>
+    {% endfor %}
+</div>
+
+<div class="mt-8 text-center">
+    <button id="submit-btn" type="button" class="w-full sm:w-auto rounded-xl bg-green-600 px-10 py-4 text-xl font-bold text-white shadow hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">Cevapları Gönder</button>
+    <p class="mt-2 text-sm text-gray-500">Gönderdikten sonra cevaplar değiştirilemez.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}

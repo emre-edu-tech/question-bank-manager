@@ -4,7 +4,7 @@
 
 1. **Commands to run on the remote server**
 
-With the virtual environment activated
+*With the virtual environment activated*
 
 ```bash
 export FLASK_APP=app.py
@@ -15,7 +15,7 @@ flask db upgrade
 
 That flask command creates `instance/app.db` on the server with **all four tables**.
 
-2. Seeding is optional. Do it only if you want the sample quiz that has been locally generated on remote website. Note that there is a guard that refuses `seed-db` command to run on a non-empty database.
+2. **Seeding is optional**. Do it only if you want the sample database information that has been locally generated on remote website (perhaps for testing). Note that there is a guard that refuses `seed-db` command to run on a non-empty database.
 
 ```bash
 flask seed-db
@@ -75,7 +75,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-7. After a new update run the following command on remote server to restart the application server
+7. After a new update (for example there is an update on local dev environment) run the following command on remote server to restart the application server
 
 ```bash
 git pull

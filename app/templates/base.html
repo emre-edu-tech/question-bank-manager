@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Pons - Question Bank Manager</title>
+    <title>{% block title %}Media Pons - Question Bank Manager{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-white shadow">
-        <div class="max-w-4xl mx-auto px-4 py-4">
-            <span class="text-xl font-bold text-gray-900">Media Pons</span>
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="{{ url_for('public.index') }}" class="text-xl font-bold text-gray-900">Media Pons</a>
+            <nav>
+                <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Quizler</a>
+            </nav>
         </div>
     </header>
     <main class="max-w-4xl mx-auto px-4 py-8">
@@ -18,5 +21,6 @@
         <p class="mt-2 text-gray-600">The question bank is being set up. Check back later.</p>
         {% endblock %}
     </main>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
