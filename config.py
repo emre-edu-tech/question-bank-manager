@@ -8,7 +8,15 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    if not SECRET_KEY:
+        raise RuntimeError(
+            "SECRET_KEY is not set. Generate one with "
+            '"python -c \\"import secrets; print(secrets.token_hex(32))\\"" '
+            "and add it as SECRET_KEY=<value> in your .env file."
+        )
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "SQLALCHEMY_DATABASE_URI",
         "sqlite:///" + os.path.join(BASE_DIR, "instance", "app.db"),

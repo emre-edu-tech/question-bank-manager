@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Yönetici Girişi - BilişimTest{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-sm py-12">
+    <div class="rounded-2xl bg-white p-8 shadow">
+        <div class="text-center">
+            <p class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl">🔐</p>
+            <p class="mt-4 text-sm font-semibold uppercase tracking-widest text-blue-600">BilişimTest</p>
+            <h1 class="mt-1 text-2xl font-extrabold text-gray-900">Yönetici Girişi</h1>
+            <p class="mt-1 text-sm text-gray-500">Devam etmek için giriş yapın.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="mt-6 space-y-2">
+            {% for category, message in messages %}
+            <p class="rounded-xl bg-red-100 border-2 border-red-400 p-3 text-center text-sm font-medium text-red-900">⚠️ {{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="post" class="mt-6 space-y-5">
+            <div>
+                <label for="username" class="block text-sm font-bold text-gray-900">Kullanıcı adı</label>
+                <input type="text" id="username" name="username" required autocomplete="username" autofocus
+                    class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-bold text-gray-900">Şifre</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password"
+                    class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            </div>
+            <button type="submit"
+                class="w-full rounded-xl bg-blue-600 px-8 py-3 text-lg font-bold text-white shadow hover:bg-blue-700 active:bg-blue-800">Giriş Yap</button>
+        </form>
+
+        <p class="mt-6 text-center text-sm">
+            <a href="{{ url_for('public.quiz_list') }}" class="font-medium text-blue-600 hover:text-blue-800">← Quizlere dön</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

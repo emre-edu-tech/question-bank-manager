@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Yönetim Paneli - BilişimTest{% endblock %}
+
+{% block content %}
+<section class="py-10">
+    <p class="text-sm font-semibold uppercase tracking-widest text-blue-600">BilişimTest</p>
+    <h1 class="mt-2 text-3xl font-extrabold text-gray-900">Yönetim Paneli</h1>
+    <p class="mt-2 text-gray-600">Konu, soru ve quiz yönetimi çok yakında burada olacak.</p>
+    <a href="{{ url_for('auth.logout') }}" class="mt-6 inline-block rounded-xl bg-gray-800 px-6 py-3 font-bold text-white shadow hover:bg-gray-900">Çıkış Yap</a>
+</section>
+{% endblock %}

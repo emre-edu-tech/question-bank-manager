@@ -1,5 +1,20 @@
 # Question Bank Manager
 
+## Generating a SECRET_KEY
+
+The app reads `SECRET_KEY` from the environment (local `.env` file) and refuses to
+start if it is missing. Generate one with:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Then paste the printed value as `SECRET_KEY=<value>` in your local `.env` file
+(`.env.example` intentionally keeps the `SECRET_KEY=change-me` placeholder).
+
+Production needs its own separately-generated key — never reuse the local dev key
+on the server.
+
 ## DATABASE MIGRATION
 
 1. **Commands to run on the remote server**
