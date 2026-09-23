@@ -1,6 +1,37 @@
 # Question Bank Manager
 
-## Generating a SECRET_KEY
+## 1. Creating a Python Virtual Environment
+
+```python
+python -m venv venv
+```
+
+or
+
+```python
+python -m venv venv
+```
+
+## 2. Activate Virtual Environment
+
+```bash
+venv/Scripts/Activate.ps1
+```
+
+or
+
+```bash
+source venv/bin/acivate
+```
+
+## 3. Install Required Python Packages
+Inside an activated virtual environment, run the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
+## 4. Generating a SECRET_KEY
 
 The app reads `SECRET_KEY` from the environment (local `.env` file) and refuses to
 start if it is missing. Generate one with:
@@ -17,7 +48,7 @@ on the server.
 
 ## DATABASE MIGRATION
 
-1. **Commands to run on the remote server**
+1. **Commands to run on the other local servers and remote server**
 
 *With the virtual environment activated*
 
@@ -27,6 +58,10 @@ flask db upgrade
 ```
 
 **Important Note**: Setting `export FLASK_APP=app.py` explicitly is mandatory here if you do not want to create `.fleskenv` file on the server. To be on the safe side while running flask commands, you can create a .flaskenv file special for remote server just to run the flask commands on remote server. Then you do not need to run `export FLASK_APP=app.py` command.
+
+```bash
+touch .flaskenv
+```
 
 That flask command creates `instance/app.db` on the server with **all four tables**.
 
