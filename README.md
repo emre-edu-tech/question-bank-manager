@@ -57,11 +57,15 @@ export FLASK_APP=app.py
 flask db upgrade
 ```
 
-**Important Note**: Setting `export FLASK_APP=app.py` explicitly is mandatory here if you do not want to create `.fleskenv` file on the server. To be on the safe side while running flask commands, you can create a .flaskenv file special for remote server just to run the flask commands on remote server. Then you do not need to run `export FLASK_APP=app.py` command.
+or
 
 ```bash
 touch .flaskenv
 ```
+
+**Important Note**: Setting `export FLASK_APP=app.py` explicitly is mandatory here if you do not want to create `.fleskenv` file on the server. To be on the safe side while running flask commands, you can create a .flaskenv file special for remote server just to run the flask commands on remote server. Then you do not need to run `export FLASK_APP=app.py` command.
+
+**Important Note**: If you are using `echo` command of Powershell then you can get `encoding` error. That's why create the flask file using text editor create-file feature.
 
 That flask command creates `instance/app.db` on the server with **all four tables**.
 
