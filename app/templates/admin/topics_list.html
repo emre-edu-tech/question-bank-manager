@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Konular - BilişimTest{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.dashboard') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Yönetim Paneli</a>
+<h1 class="mt-2 text-3xl font-extrabold text-gray-900">Konular</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="mt-6 space-y-2">
+    {% for category, message in messages %}
+    {% if category == "success" %}
+    <p class="rounded-xl bg-green-100 border-2 border-green-400 p-3 text-sm font-medium text-green-900">✅ {{ message }}</p>
+    {% else %}
+    <p class="rounded-xl bg-red-100 border-2 border-red-400 p-3 text-sm font-medium text-red-900">⚠️ {{ message }}</p>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    <h2 class="text-lg font-bold text-gray-900">Yeni konu ekle</h2>
+    <form method="post" action="{{ url_for('admin.topic_list') }}" class="mt-3 flex flex-col gap-3 sm:flex-row">
+        <input type="text" id="name" name="name" required value="{{ form_name or '' }}" placeholder="Konu adı"
+            class="flex-1 rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+        <button type="submit" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow hover:bg-blue-700">Ekle</button>
+    </form>
+</section>
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    <h2 class="text-lg font-bold text-gray-900">Konu listesi</h2>
+    {% if topics %}
+    <ul class="mt-3 divide-y divide-gray-100">
+        {% for topic in topics %}
+        <li class="flex items-center justify-between gap-4 py-3">
+            <div>
+                <p class="font-bold text-gray-900">{{ topic.name }}</p>
+                <p class="text-sm text-gray-500">{{ topic.questions|length }} soru</p>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+                <a href="{{ url_for('admin.topic_edit', topic_id=topic.id) }}" class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold text-gray-800 hover:bg-gray-200">Düzenle</a>
+                <form method="post" action="{{ url_for('admin.topic_delete', topic_id=topic.id) }}" onsubmit="return confirm('Bu konuyu silmek istediğinize emin misiniz?');">
+                    <button type="submit" class="rounded-xl bg-red-100 px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-200">Sil</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="mt-3 text-gray-500">Henüz konu yok. Yukarıdaki formu kullanarak ekleyin.</p>
+    {% endif %}
+</section>
+{% endblock %}

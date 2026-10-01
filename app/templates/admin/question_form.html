@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% if is_edit %}
+{% set page_title = "Soruyu Düzenle" %}
+{% else %}
+{% set page_title = "Yeni Soru" %}
+{% endif %}
+
+{% block title %}{{ page_title }} - BilişimTest{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.question_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Sorular</a>
+<h1 class="mt-2 text-3xl font-extrabold text-gray-900">{{ page_title }}</h1>
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+        <div>
+            <label for="topic_id" class="block text-sm font-bold text-gray-900">Konu</label>
+            <select id="topic_id" name="topic_id" required
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+                <option value="">Konu seçin</option>
+                {% for topic in topics %}
+                <option value="{{ topic.id }}" {% if values.get('topic_id') == topic.id|string %}selected{% endif %}>{{ topic.name }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.get('topic_id') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('topic_id') }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="text" class="block text-sm font-bold text-gray-900">Soru metni</label>
+            <textarea id="text" name="text" rows="3" required
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">{{ values.get('text', '') }}</textarea>
+            {% if errors.get('text') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('text') }}</p>
+            {% endif %}
+        </div>
+
+        <fieldset>
+            <legend class="text-sm font-bold text-gray-900">Seçenekler ve doğru cevap</legend>
+            <p class="mt-1 text-sm text-gray-500">Doğru olan seçeneğin yanındaki yuvarlağı işaretleyin.</p>
+            <div class="mt-3 space-y-3">
+                {% for letter in ['A', 'B', 'C', 'D'] %}
+                <div class="flex items-center gap-3">
+                    <input type="radio" id="correct_{{ letter }}" name="correct_choice" value="{{ letter }}"
+                        {% if values.get('correct_choice') == letter %}checked{% endif %}
+                        class="h-5 w-5 shrink-0 accent-green-600" title="{{ letter }} şıkkı doğru">
+                    <label for="choice_{{ letter|lower }}" class="w-6 shrink-0 text-center font-bold text-gray-900">{{ letter }}</label>
+                    <input type="text" id="choice_{{ letter|lower }}" name="choice_{{ letter|lower }}" required
+                        value="{{ values.get('choice_' + letter|lower, '') }}" placeholder="{{ letter }} şıkkı"
+                        class="flex-1 rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+                </div>
+                {% if errors.get('choice_' + letter|lower) %}
+                <p class="ml-14 text-sm font-medium text-red-700">{{ errors.get('choice_' + letter|lower) }}</p>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% if errors.get('correct_choice') %}
+            <p class="mt-2 text-sm font-medium text-red-700">{{ errors.get('correct_choice') }}</p>
+            {% endif %}
+        </fieldset>
+
+        <div>
+            <label for="image" class="block text-sm font-bold text-gray-900">Görsel (isteğe bağlı)</label>
+            {% if is_edit and question and question.image_path %}
+            <img src="{{ url_for('static', filename=question.image_path) }}" alt="Mevcut soru görseli" class="mt-2 max-h-40 w-auto rounded-xl border">
+            <label class="mt-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+                <input type="checkbox" name="remove_image" value="1" class="h-4 w-4 accent-red-600">
+                Mevcut görseli kaldır
+            </label>
+            {% endif %}
+            <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,.webp"
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            <p class="mt-1 text-sm text-gray-500">Sadece .png, .jpg, .jpeg, .webp — en fazla 2MB.</p>
+            {% if errors.get('image') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('image') }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow hover:bg-blue-700">Kaydet</button>
+            <a href="{{ url_for('admin.question_list') }}" class="rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-800 hover:bg-gray-200">Vazgeç</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

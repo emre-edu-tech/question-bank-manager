@@ -6,7 +6,40 @@
 <section class="py-10">
     <p class="text-sm font-semibold uppercase tracking-widest text-blue-600">BilişimTest</p>
     <h1 class="mt-2 text-3xl font-extrabold text-gray-900">Yönetim Paneli</h1>
-    <p class="mt-2 text-gray-600">Konu, soru ve quiz yönetimi çok yakında burada olacak.</p>
+    <p class="mt-2 text-gray-600">Konu, soru ve quiz yönetimi.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mt-6 space-y-2">
+        {% for category, message in messages %}
+        {% if category == "success" %}
+        <p class="rounded-xl bg-green-100 border-2 border-green-400 p-3 text-sm font-medium text-green-900">✅ {{ message }}</p>
+        {% else %}
+        <p class="rounded-xl bg-red-100 border-2 border-red-400 p-3 text-sm font-medium text-red-900">⚠️ {{ message }}</p>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-3">
+        <a href="{{ url_for('admin.topic_list') }}" class="rounded-2xl bg-white p-6 shadow hover:shadow-md">
+            <p class="text-2xl">📁</p>
+            <h2 class="mt-2 text-lg font-bold text-gray-900">Konular</h2>
+            <p class="mt-1 text-sm text-gray-500">Konuları listele, ekle, düzenle.</p>
+        </a>
+        <a href="{{ url_for('admin.question_list') }}" class="rounded-2xl bg-white p-6 shadow hover:shadow-md">
+            <p class="text-2xl">❓</p>
+            <h2 class="mt-2 text-lg font-bold text-gray-900">Sorular</h2>
+            <p class="mt-1 text-sm text-gray-500">Soru bankasını yönet.</p>
+        </a>
+        <a href="/admin/quizzes" class="rounded-2xl bg-white p-6 shadow hover:shadow-md">
+            <p class="text-2xl">📝</p>
+            <h2 class="mt-2 text-lg font-bold text-gray-900">Quizler</h2>
+            <p class="mt-1 text-sm text-gray-500">Quizleri hazırla ve düzenle.</p>
+        </a>
+    </div>
+
     <a href="{{ url_for('auth.logout') }}" class="mt-6 inline-block rounded-xl bg-gray-800 px-6 py-3 font-bold text-white shadow hover:bg-gray-900">Çıkış Yap</a>
 </section>
 {% endblock %}

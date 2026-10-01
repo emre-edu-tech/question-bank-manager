@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Konuyu Düzenle - BilişimTest{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.topic_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Konular</a>
+<h1 class="mt-2 text-3xl font-extrabold text-gray-900">Konuyu Düzenle</h1>
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    <form method="post" class="space-y-5">
+        <div>
+            <label for="name" class="block text-sm font-bold text-gray-900">Konu adı</label>
+            <input type="text" id="name" name="name" required value="{{ form_name or '' }}"
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            {% if error %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ error }}</p>
+            {% endif %}
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow hover:bg-blue-700">Kaydet</button>
+            <a href="{{ url_for('admin.topic_list') }}" class="rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-800 hover:bg-gray-200">Vazgeç</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
