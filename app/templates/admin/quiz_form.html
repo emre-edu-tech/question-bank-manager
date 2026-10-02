@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% if is_edit %}
+{% set page_title = "Quizi Düzenle" %}
+{% else %}
+{% set page_title = "Yeni Quiz" %}
+{% endif %}
+
+{% block title %}{{ page_title }} - BilişimTest{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Quizler</a>
+<h1 class="mt-2 text-3xl font-extrabold text-gray-900">{{ page_title }}</h1>
+
+{% if is_edit and quiz %}
+{% set public_url = url_for('public.quiz_detail', slug=quiz.slug, _external=True) %}
+<section class="mt-6 rounded-2xl bg-blue-50 border-2 border-blue-200 p-6 shadow">
+    <h2 class="text-sm font-bold uppercase tracking-widest text-blue-700">Herkese açık bağlantı</h2>
+    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <a href="{{ public_url }}" class="break-all font-medium text-blue-700 hover:text-blue-900">{{ public_url }}</a>
+        <button type="button" id="copy-public-link" data-copy-link="{{ public_url }}"
+            class="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-blue-700">Bağlantıyı kopyala</button>
+    </div>
+</section>
+{% endif %}
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    <form method="post" id="quiz-form" class="space-y-5">
+        <div>
+            <label for="title" class="block text-sm font-bold text-gray-900">Quiz başlığı</label>
+            <input type="text" id="title" name="title" required value="{{ values.get('title', '') }}"
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            {% if errors.get('title') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('title') }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="slug" class="block text-sm font-bold text-gray-900">Slug</label>
+            <input type="text" id="slug" name="slug" value="{{ values.get('slug', '') }}"
+                class="mt-2 w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-3 text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+            <p class="mt-1 text-sm text-gray-500">Başlıktan otomatik doldurulur, isterseniz değiştirebilirsiniz.</p>
+            {% if errors.get('slug') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('slug') }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="text-sm font-bold text-gray-900">Sorular</h2>
+            {% if errors.get('questions') %}
+            <p class="mt-1 text-sm font-medium text-red-700">{{ errors.get('questions') }}</p>
+            {% endif %}
+            <p id="client-questions-error" class="hidden mt-1 text-sm font-medium text-red-700">En az bir soru seçmelisiniz.</p>
+            <div class="mt-3 grid gap-4 lg:grid-cols-2">
+                <div class="rounded-xl border-2 border-gray-200 p-4">
+                    <h3 class="font-bold text-gray-900">Soru bankası</h3>
+                    <div class="mt-3 space-y-2">
+                        <input type="text" id="bank-search" placeholder="Soruda ara..."
+                            class="w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-2 text-sm text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+                        <select id="bank-topic-filter"
+                            class="w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-2 text-sm text-gray-900 focus:border-blue-400 focus:bg-white focus:outline-none">
+                            <option value="">Tüm konular</option>
+                            {% for topic in topics %}
+                            <option value="{{ topic.id }}">{{ topic.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <ul id="bank-list" class="mt-3 max-h-96 space-y-2 overflow-y-auto">
+                        {% for question in questions %}
+                        <li data-bank-row data-topic-id="{{ question.topic_id }}" data-search="{{ question.text|lower }}">
+                            <label class="flex cursor-pointer items-start gap-2 rounded-xl bg-gray-50 p-3 hover:bg-blue-50">
+                                <input type="checkbox" data-add-checkbox value="{{ question.id }}"
+                                    {% if question.id in selected_ids %}checked{% endif %}
+                                    class="mt-1 h-4 w-4 accent-blue-600">
+                                <span>
+                                    <span class="block text-sm font-medium text-gray-900">{{ question.text|truncate(100) }}</span>
+                                    <span class="block text-xs text-gray-500">{{ question.topic.name }}</span>
+                                </span>
+                            </label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if not questions %}
+                    <p class="mt-3 text-sm text-gray-500">Bankada henüz soru yok.</p>
+                    {% endif %}
+                </div>
+                <div class="rounded-xl border-2 border-gray-200 p-4">
+                    <h3 class="font-bold text-gray-900">Bu quizdeki sorular (<span id="selected-count">{{ selected_ids|length }}</span>)</h3>
+                    <p class="mt-1 text-sm text-gray-500">Sıralamayı ↑ ↓ düğmeleriyle değiştirin.</p>
+                    <ul id="selected-list" class="mt-3 space-y-2">
+                        {% set question_by_id = {} %}
+                        {% for question in questions %}
+                        {% if question_by_id.update({question.id: question}) %}{% endif %}
+                        {% endfor %}
+                        {% for qid in selected_ids %}
+                        {% set question = question_by_id.get(qid) %}
+                        {% if question %}
+                        <li data-id="{{ question.id }}" class="flex items-center gap-2 rounded-xl bg-blue-50 p-3">
+                            <input type="hidden" name="question_ids" value="{{ question.id }}">
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white selected-position">{{ loop.index }}</span>
+                            <span class="flex-1 text-sm font-medium text-gray-900">{{ question.text|truncate(80) }}</span>
+                            <button type="button" data-move-up title="Yukarı taşı" class="shrink-0 rounded-lg bg-white px-2 py-1 font-bold text-gray-700 border hover:bg-gray-100">↑</button>
+                            <button type="button" data-move-down title="Aşağı taşı" class="shrink-0 rounded-lg bg-white px-2 py-1 font-bold text-gray-700 border hover:bg-gray-100">↓</button>
+                            <button type="button" data-remove title="Quizden çıkar" class="shrink-0 rounded-lg bg-white px-2 py-1 font-bold text-red-700 border hover:bg-red-50">×</button>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <p id="selected-empty" class="mt-3 text-sm text-gray-500 {% if selected_ids %}hidden{% endif %}">Henüz soru seçilmedi. Soldaki listeden ekleyin.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow hover:bg-blue-700">Kaydet</button>
+            <a href="{{ url_for('admin.quiz_list') }}" class="rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-800 hover:bg-gray-200">Vazgeç</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var turkishMap = { "ç": "c", "Ç": "c", "ğ": "g", "Ğ": "g", "ı": "i", "I": "i", "İ": "i", "ö": "o", "Ö": "o", "ş": "s", "Ş": "s", "ü": "u", "Ü": "u" };
+    function slugify(text) {
+        text = (text || "").split("").map(function (ch) { return turkishMap[ch] || ch; }).join("");
+        return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+    }
+
+    var titleInput = document.getElementById("title");
+    var slugInput = document.getElementById("slug");
+    var slugTouched = slugInput.value.trim() !== "";
+    slugInput.addEventListener("input", function () { slugTouched = true; });
+    titleInput.addEventListener("input", function () {
+        if (!slugTouched) { slugInput.value = slugify(titleInput.value); }
+    });
+
+    var searchInput = document.getElementById("bank-search");
+    var topicFilter = document.getElementById("bank-topic-filter");
+    function applyBankFilter() {
+        var term = searchInput.value.trim().toLowerCase();
+        var topicId = topicFilter.value;
+        document.querySelectorAll("[data-bank-row]").forEach(function (row) {
+            var matchesTopic = !topicId || row.getAttribute("data-topic-id") === topicId;
+            var matchesTerm = !term || row.getAttribute("data-search").indexOf(term) !== -1;
+            row.style.display = (matchesTopic && matchesTerm) ? "" : "none";
+        });
+    }
+    searchInput.addEventListener("input", applyBankFilter);
+    topicFilter.addEventListener("change", applyBankFilter);
+
+    var selectedList = document.getElementById("selected-list");
+    var selectedEmpty = document.getElementById("selected-empty");
+    var selectedCount = document.getElementById("selected-count");
+
+    function questionLabel(qid) {
+        var checkbox = document.querySelector('[data-add-checkbox][value="' + qid + '"]');
+        if (!checkbox) { return "Soru #" + qid; }
+        var row = checkbox.closest("[data-bank-row]");
+        var title = row.querySelector("span span.block");
+        return title ? title.textContent : ("Soru #" + qid);
+    }
+
+    function refreshPositions() {
+        var items = selectedList.querySelectorAll("li[data-id]");
+        items.forEach(function (item, index) {
+            var badge = item.querySelector(".selected-position");
+            if (badge) { badge.textContent = index + 1; }
+        });
+        selectedCount.textContent = items.length;
+        selectedEmpty.classList.toggle("hidden", items.length > 0);
+    }
+
+    function addSelected(qid) {
+        if (selectedList.querySelector('li[data-id="' + qid + '"]')) { refreshPositions(); return; }
+        var li = document.createElement("li");
+        li.setAttribute("data-id", qid);
+        li.className = "flex items-center gap-2 rounded-xl bg-blue-50 p-3";
+        var hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "question_ids";
+        hidden.value = qid;
+        li.appendChild(hidden);
+        var badge = document.createElement("span");
+        badge.className = "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white selected-position";
+        li.appendChild(badge);
+        var text = document.createElement("span");
+        text.className = "flex-1 text-sm font-medium text-gray-900";
+        text.textContent = questionLabel(qid);
+        li.appendChild(text);
+        [["data-move-up", "↑", "Yukarı taşı"], ["data-move-down", "↓", "Aşağı taşı"], ["data-remove", "×", "Quizden çıkar"]].forEach(function (spec) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.setAttribute(spec[0], "");
+            btn.title = spec[2];
+            btn.textContent = spec[1];
+            btn.className = "shrink-0 rounded-lg bg-white px-2 py-1 font-bold text-gray-700 border hover:bg-gray-100";
+            if (spec[0] === "data-remove") { btn.classList.remove("text-gray-700"); btn.classList.add("text-red-700"); }
+            li.appendChild(btn);
+        });
+        selectedList.appendChild(li);
+        refreshPositions();
+    }
+
+    function removeSelected(qid) {
+        var item = selectedList.querySelector('li[data-id="' + qid + '"]');
+        if (item) { item.remove(); }
+        var checkbox = document.querySelector('[data-add-checkbox][value="' + qid + '"]');
+        if (checkbox) { checkbox.checked = false; }
+        refreshPositions();
+    }
+
+    document.querySelectorAll("[data-add-checkbox]").forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+            if (checkbox.checked) { addSelected(checkbox.value); }
+            else { removeSelected(checkbox.value); }
+        });
+    });
+
+    selectedList.addEventListener("click", function (event) {
+        var button = event.target.closest("button");
+        if (!button) { return; }
+        var item = event.target.closest("li[data-id]");
+        if (!item) { return; }
+        if (button.hasAttribute("data-move-up") && item.previousElementSibling) {
+            selectedList.insertBefore(item, item.previousElementSibling);
+        } else if (button.hasAttribute("data-move-down") && item.nextElementSibling) {
+            selectedList.insertBefore(item.nextElementSibling, item);
+        } else if (button.hasAttribute("data-remove")) {
+            removeSelected(item.getAttribute("data-id"));
+            return;
+        }
+        refreshPositions();
+    });
+
+    document.getElementById("quiz-form").addEventListener("submit", function (event) {
+        if (selectedList.querySelectorAll("li[data-id]").length === 0) {
+            event.preventDefault();
+            document.getElementById("client-questions-error").classList.remove("hidden");
+        }
+    });
+
+    var copyButton = document.getElementById("copy-public-link");
+    if (copyButton) {
+        copyButton.addEventListener("click", function () {
+            navigator.clipboard.writeText(copyButton.getAttribute("data-copy-link")).then(function () {
+                var original = copyButton.textContent;
+                copyButton.textContent = "Kopyalandı!";
+                setTimeout(function () { copyButton.textContent = original; }, 1500);
+            });
+        });
+    }
+
+    refreshPositions();
+})();
+</script>
+{% endblock %}
