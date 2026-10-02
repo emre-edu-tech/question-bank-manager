@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Quizler - BilişimTest{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.dashboard') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Yönetim Paneli</a>
+<div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-3xl font-extrabold text-gray-900">Quizler</h1>
+    <a href="{{ url_for('admin.quiz_new') }}" class="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow hover:bg-blue-700">+ Yeni Quiz</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="mt-6 space-y-2">
+    {% for category, message in messages %}
+    {% if category == "success" %}
+    <p class="rounded-xl bg-green-100 border-2 border-green-400 p-3 text-sm font-medium text-green-900">✅ {{ message }}</p>
+    {% else %}
+    <p class="rounded-xl bg-red-100 border-2 border-red-400 p-3 text-sm font-medium text-red-900">⚠️ {{ message }}</p>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<section class="mt-6 rounded-2xl bg-white p-6 shadow">
+    {% if quizzes %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead>
+                <tr class="border-b-2 border-gray-100 text-gray-500">
+                    <th class="py-2 pr-4 font-bold">Başlık</th>
+                    <th class="py-2 pr-4 font-bold">Slug</th>
+                    <th class="py-2 pr-4 font-bold">Soru sayısı</th>
+                    <th class="py-2 pr-4 font-bold">Herkese açık bağlantı</th>
+                    <th class="py-2 font-bold">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for quiz in quizzes %}
+                {% set public_url = url_for('public.quiz_detail', slug=quiz.slug, _external=True) %}
+                <tr>
+                    <td class="py-3 pr-4 font-medium text-gray-900">{{ quiz.title }}</td>
+                    <td class="py-3 pr-4 text-gray-600">{{ quiz.slug }}</td>
+                    <td class="py-3 pr-4 text-gray-600">{{ counts.get(quiz.id, 0) }}</td>
+                    <td class="py-3 pr-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ public_url }}" class="break-all font-medium text-blue-600 hover:text-blue-800">{{ public_url }}</a>
+                            <button type="button" data-copy-link="{{ public_url }}"
+                                class="shrink-0 rounded-xl bg-gray-100 px-3 py-1 text-sm font-bold text-gray-800 hover:bg-gray-200">Kopyala</button>
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        <div class="flex shrink-0 items-center gap-2">
+                            <a href="{{ url_for('admin.quiz_edit', quiz_id=quiz.id) }}" class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold text-gray-800 hover:bg-gray-200">Düzenle</a>
+                            <form method="post" action="{{ url_for('admin.quiz_delete', quiz_id=quiz.id) }}" onsubmit="return confirm('Bu quizi silmek istediğinize emin misiniz? Sorular bankada kalacak.');">
+                                <button type="submit" class="rounded-xl bg-red-100 px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-200">Sil</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-gray-500">Henüz quiz yok. "Yeni Quiz" düğmesiyle ekleyin.</p>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll("[data-copy-link]").forEach(function (button) {
+    button.addEventListener("click", function () {
+        var link = button.getAttribute("data-copy-link");
+        navigator.clipboard.writeText(link).then(function () {
+            var original = button.textContent;
+            button.textContent = "Kopyalandı!";
+            setTimeout(function () { button.textContent = original; }, 1500);
+        });
+    });
+});
+</script>
+{% endblock %}
