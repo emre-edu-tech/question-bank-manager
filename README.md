@@ -1,137 +1,191 @@
 # Question Bank Manager
 
-## 1. Creating a Python Virtual Environment
+Small Flask app with a public quiz frontend (no login, nothing persisted)
+and a single-admin panel for Topics, Questions (4-option multiple choice,
+optional image) and hand-assembled Quizzes.
 
-```python
-python -m venv venv
-```
+## Local setup
 
-or
+1. **Create a virtual environment**
 
-```python
-python -m venv venv
-```
+   ```bash
+   python -m venv venv
+   ```
 
-## 2. Activate Virtual Environment
+2. **Activate it**
 
-```bash
-venv/Scripts/Activate.ps1
-```
+   ```bash
+   venv/Scripts/Activate.ps1
+   ```
 
-or
+   or (Linux/macOS):
 
-```bash
-source venv/bin/acivate
-```
+   ```bash
+   source venv/bin/activate
+   ```
 
-## 3. Install Required Python Packages
-Inside an activated virtual environment, run the following command:
+3. **Install Python dependencies**
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 4. Generating a SECRET_KEY
+4. **Install Node dependencies**
 
-The app reads `SECRET_KEY` from the environment (local `.env` file) and refuses to
-start if it is missing. Generate one with:
+   ```bash
+   npm install
+   ```
 
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
+5. **Configure environment**
 
-Then paste the printed value as `SECRET_KEY=<value>` in your local `.env` file
-(`.env.example` intentionally keeps the `SECRET_KEY=change-me` placeholder).
+   Copy `.env.example` to `.env` and fill it in:
 
-Production needs its own separately-generated key — never reuse the local dev key
-on the server.
+   ```bash
+   copy .env.example .env
+   ```
 
-## DATABASE MIGRATION
+   or (Linux/macOS):
 
-1. **Commands to run on the other local servers and remote server**
+   ```bash
+   cp .env.example .env
+   ```
 
-*With the virtual environment activated*
+   Required variables (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `SECRET_KEY`,
+   `FLASK_ENV` — see `.env.example`):
 
-```bash
-export FLASK_APP=app.py
-flask db upgrade
-```
+   - `SECRET_KEY` — Flask session signing key.
+   - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — single admin login (no admin
+     user table; compared with `secrets.compare_digest`).
+   - `FLASK_ENV` — `development` locally.
 
-or
+6. **Generating a `SECRET_KEY`**
 
-```bash
-touch .flaskenv
-```
+   The app reads `SECRET_KEY` from the environment (local `.env` file) and
+   refuses to start if it is missing. Generate one with:
 
-**Important Note**: Setting `export FLASK_APP=app.py` explicitly is mandatory here if you do not want to create `.fleskenv` file on the server. To be on the safe side while running flask commands, you can create a .flaskenv file special for remote server just to run the flask commands on remote server. Then you do not need to run `export FLASK_APP=app.py` command.
+   ```
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
 
-**Important Note**: If you are using `echo` command of Powershell then you can get `encoding` error. That's why create the flask file using text editor create-file feature.
+   Then paste the printed value as `SECRET_KEY=<value>` in your local `.env`
+   file (`.env.example` intentionally keeps the `SECRET_KEY=change-me`
+   placeholder).
 
-That flask command creates `instance/app.db` on the server with **all four tables**.
+   This must be run again on the production server to generate a
+   **separate** key for the server's `.env` — the local development key
+   must never be reused in production.
 
-2. **Seeding is optional**. Do it only if you want the sample database information that has been locally generated on remote website (perhaps for testing). Note that there is a guard that refuses `seed-db` command to run on a non-empty database.
+7. **Build the CSS**
 
-```bash
-flask seed-db
-```
+   ```bash
+   npm run build:css
+   ```
 
-## DEPLOYMENT
+   This compiles `app/static/src/input.css` to
+   `app/static/dist/output.css` (minified). The compiled file is committed
+   to git — always rebuild and commit it after changing any template or
+   `app/static/js` file.
 
-### Project Deployment to Plesk VPS (with nginx as Web Server, Phusion Passenger as Application Server)
+8. **Run migrations**
 
-1. `wsgi.py` file content
+   ```bash
+   flask db upgrade
+   ```
 
-```python
-import sys
-import os
+   That creates `instance/app.db` with **all four tables**.
+   (`.flaskenv` sets `FLASK_APP=app.py`, so `flask` commands target the
+   local dev entry point. If there is no `.flaskenv` on a machine, use
+   `export FLASK_APP=app.py` / `$env:FLASK_APP = "app.py"` first.)
 
-# Set the project root directory
-project_home = os.path.dirname(__file__)
-sys.path.insert(0, project_home)
+   **Important Note**: If you are using `echo` command of Powershell then
+   you can get `encoding` error. That's why create files using a text
+   editor instead.
 
-# Set Python interpreter to your venv
-INTERP = os.path.join(project_home, "venv", "bin", "python3")
-if sys.executable != INTERP:
-    os.execl(INTERP, INTERP, *sys.argv)
+9. **Seed sample data (optional, dev only)**
 
-# Import the app factory and create the application instance
-from app import create_app
+   ```bash
+   flask seed-db
+   ```
 
-application = create_app()
-```
+   Seeding is optional — only for local testing. There is a guard that
+   refuses to run on a non-empty database, so it can never duplicate or
+   overwrite real content.
 
-2. `Domain > Hosting & DNS > Apache & nginx > Disable Proxy Mode`
-3. `Domain > Hosting & DNS > Apache & nginx > Additional nginx Directives`
+10. **Run the dev server**
 
-```text
-passenger_enabled on;
-passenger_app_type wsgi;
-passenger_startup_file wsgi.py;
-passenger_app_root /var/www/vhosts/example.com/subdomain.example.com;
-passenger_python /var/www/vhosts/example.com/subdomain.example.com/venv/bin/python;
-```
+    ```bash
+    flask run
+    ```
 
-4. On remote server run the following command to create virtual environment. (Mandatory not to mess with the system python)
+    or:
 
-```bash
-python -m venv venv
-```
+    ```bash
+    python app.py
+    ```
 
-5. Activate the virtual environment.
+## Deployment notes (Plesk VPS + Phusion Passenger)
 
-```bash
-source venv/bin/activate
-```
+- Passenger expects `wsgi.py` at the project root exposing `application`.
+  Do not rename it, do not repurpose it for local dev (`app.py` is the
+  local entry point):
 
-6. With the virtual environment activated, run the following command to install the necessary Python packages. (Necessary packages are listed in `requirements.txt` file)
+  ```python
+  import sys
+  import os
 
-```bash
-pip install -r requirements.txt
-```
+  # Set the project root directory
+  project_home = os.path.dirname(__file__)
+  sys.path.insert(0, project_home)
 
-7. After a new update (for example there is an update on local dev environment) run the following command on remote server to restart the application server
+  # Set Python interpreter to your venv
+  INTERP = os.path.join(project_home, "venv", "bin", "python3")
+  if sys.executable != INTERP:
+      os.execl(INTERP, INTERP, *sys.argv)
 
-```bash
-git pull
-touch tmp/restart.txt
-```
+  # Import the app factory and create the application instance
+  from app import create_app
+
+  application = create_app()
+  ```
+
+- The compiled `app/static/dist/output.css` is committed and served
+  as-is — no build step runs on the server. Rebuild locally with
+  `npm run build:css` and commit the result before deploying.
+
+- Admin credentials are set via the server's `.env`, not in code.
+  Generate a separate `SECRET_KEY` on the server (see above) and never
+  reuse the local dev key.
+
+- `Domain > Hosting & DNS > Apache & nginx > Disable Proxy Mode`
+- `Domain > Hosting & DNS > Apache & nginx > Additional nginx Directives`
+
+  ```text
+  passenger_enabled on;
+  passenger_app_type wsgi;
+  passenger_startup_file wsgi.py;
+  passenger_app_root /var/www/vhosts/example.com/subdomain.example.com;
+  passenger_python /var/www/vhosts/example.com/subdomain.example.com/venv/bin/python;
+  ```
+
+- On the server, create and use a virtual environment (never use the
+  system python):
+
+  ```bash
+  python -m venv venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  ```
+
+- Run migrations on the server (`FLASK_APP=app.py` must be set if there
+  is no `.flaskenv` there):
+
+  ```bash
+  flask db upgrade
+  ```
+
+- After each update, restart the application server:
+
+  ```bash
+  git pull
+  touch tmp/restart.txt
+  ```

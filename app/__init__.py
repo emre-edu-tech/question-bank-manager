@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_migrate import Migrate
 
 from config import Config
@@ -31,5 +31,14 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(public_bp)
+
+    def not_found(error):
+        return render_template("public/404.html"), 404
+
+    def internal_error(error):
+        return render_template("public/500.html"), 500
+
+    app.register_error_handler(404, not_found)
+    app.register_error_handler(500, internal_error)
 
     return app

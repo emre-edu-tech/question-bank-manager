@@ -76,8 +76,3 @@ def quiz_submit(slug):
         )
 
     return jsonify({"score": score, "total": len(results), "results": results})
-
-
-@bp.app_errorhandler(404)
-def not_found(error):
-    return render_template("public/404.html"), 404
