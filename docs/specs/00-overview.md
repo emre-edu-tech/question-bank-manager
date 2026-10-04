@@ -1,7 +1,7 @@
 # Question Bank Manager — Project Overview
 
 **Owner:** Media Pons
-**Audience:** 5th & 6th grade secondary school students (public-facing quizzes) + a single teacher/admin (question authoring)
+**Audience:** Secondary school students (public-facing quizzes) + a single teacher/admin (question authoring)
 
 ## Purpose
 
@@ -11,6 +11,8 @@ A small, deliberately simple web app with two halves:
 2. **Admin panel** — a single logged-in admin creates Topics, Questions (classic 4-option multiple choice, one correct answer, optional image), and assembles hand-picked Questions into named, linkable Quizzes.
 
 This is a deliberately trimmed-down successor to an earlier over-scoped "exam paper generator" project. Keep every step as small and boring as possible — no extra features beyond what's specified here.
+
+**Gamification extension (TÜBİTAK 4006):** steps 08–13 extend this same app with a gamified layer — student identity, XP/levels, lives, speed bonuses, badges, and a leaderboard — built for a TÜBİTAK 4006 "Oyun ve Oyunlaştırma" school science-fair project. These steps modify files created in steps 01–07; read the relevant earlier step before touching a file it created.
 
 ## Tech stack
 
@@ -26,44 +28,44 @@ This is a deliberately trimmed-down successor to an earlier over-scoped "exam pa
 
 ## Folder structure
 
+This is the project root — the agent works directly inside it, with no enclosing wrapper folder:
+
 ```
-question-bank-manager/
-├── app/
-│   ├── __init__.py            # create_app()
-│   ├── extensions.py          # db = SQLAlchemy()
-│   ├── models.py              # Topic, Question, Quiz, QuizQuestion
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   ├── routes.py
-│   │   └── decorators.py
-│   ├── admin/
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── public/
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── static/
-│   │   ├── src/input.css
-│   │   ├── dist/output.css    # committed, never gitignored
-│   │   ├── js/
-│   │   └── uploads/questions/ # question images
-│   └── templates/
-│       ├── base.html
-│       ├── auth/
-│       ├── admin/
-│       └── public/
-├── migrations/                 # Flask-Migrate
-├── instance/                   # SQLite database lives here (app.db) — folder committed, contents gitignored
-├── config.py
-├── app.py                      # LOCAL DEV entry point only
-├── wsgi.py                     # PRODUCTION entry point — Passenger, committed to git
-├── requirements.txt
-├── package.json
-├── tailwind.config.js
-├── .env.example
-├── .flaskenv                   # FLASK_APP=app.py, so `flask` CLI commands target the dev entry point
-├── .gitignore
-└── README.md
+app/
+├── __init__.py            # create_app()
+├── extensions.py          # db = SQLAlchemy()
+├── models.py              # Topic, Question, Quiz, QuizQuestion (+ gamification models, see below)
+├── auth/
+│   ├── __init__.py
+│   ├── routes.py
+│   └── decorators.py
+├── admin/
+│   ├── __init__.py
+│   └── routes.py
+├── public/
+│   ├── __init__.py
+│   └── routes.py
+├── static/
+│   ├── src/input.css
+│   ├── dist/output.css    # committed, never gitignored
+│   ├── js/
+│   └── uploads/questions/ # question images
+└── templates/
+    ├── base.html
+    ├── auth/
+    ├── admin/
+    └── public/
+migrations/                 # Flask-Migrate
+config.py
+app.py                      # LOCAL DEV entry point only
+wsgi.py                     # PRODUCTION entry point — Passenger, committed to git
+requirements.txt
+package.json
+tailwind.config.js
+.env.example
+.flaskenv                   # FLASK_APP=app.py, so `flask` CLI commands target the dev entry point
+.gitignore
+README.md
 ```
 
 ## Local dev vs. production entry points
@@ -117,7 +119,55 @@ QuizQuestion                               # junction table — hand-picked, ord
   unique(quiz_id, question_id)
 ```
 
-No answer-choice images (question image only). No results/attempts are persisted anywhere — scoring happens per-request and is thrown away.
+No answer-choice images (question image only).
+
+### Gamification schema additions (steps 08–13)
+
+The base-app decision that "nothing is persisted after a quiz attempt" is superseded starting at step 08 — gamification requires saving who played and what happened:
+
+```
+Student                                    # added in Step 08 — no password, no PII beyond a nickname
+  id              INTEGER PK
+  nickname        TEXT, not null
+  class_code      TEXT, not null
+  total_xp        INTEGER, not null, default 0     # added in Step 09
+  created_at      DATETIME, default now
+  unique(nickname, class_code)
+
+QuizAttempt                                # added in Step 08
+  id                INTEGER PK
+  student_id        INTEGER FK -> Student.id, not null
+  quiz_id           INTEGER FK -> Quiz.id, not null
+  score             INTEGER, not null, default 0
+  total_questions   INTEGER, not null
+  xp_earned         INTEGER, not null, default 0    # added in Step 09
+  lives_remaining   INTEGER, nullable                # added in Step 10
+  completed         BOOLEAN, not null, default false
+  started_at        DATETIME, default now
+  completed_at      DATETIME, nullable
+
+QuizAttemptAnswer                          # added in Step 08
+  id                  INTEGER PK
+  attempt_id          INTEGER FK -> QuizAttempt.id, not null
+  question_id         INTEGER FK -> Question.id, not null
+  selected_choice     ENUM('A','B','C','D'), nullable   # null if left unanswered (e.g. ran out of lives)
+  is_correct          BOOLEAN, not null, default false
+  time_taken_seconds  FLOAT, nullable                    # added in Step 11
+  xp_awarded          INTEGER, not null, default 0       # added in Step 09
+
+Badge                                      # added in Step 12 — admin-seeded, not admin-CRUD
+  id            INTEGER PK
+  code          TEXT, unique, not null      # e.g. "ilk-adim"
+  name          TEXT, not null
+  description   TEXT, not null
+
+StudentBadge                               # added in Step 12
+  id          INTEGER PK
+  student_id  INTEGER FK -> Student.id, not null
+  badge_id    INTEGER FK -> Badge.id, not null
+  earned_at   DATETIME, default now
+  unique(student_id, badge_id)
+```
 
 ## Route map
 
@@ -137,13 +187,21 @@ No answer-choice images (question image only). No results/attempts are persisted
 - Questions CRUD under `/admin/questions`
 - Quiz builder under `/admin/quizzes`
 
+**Gamification additions to Public** (`app/public`)
+- `GET/POST /play` — Step 08: nickname + class code entry (sets `session['student_id']`)
+- `POST /quizzes/<slug>/submit` — Step 08–09: bulk grading, now persists a `QuizAttempt` and awards XP. **Retired in Step 10.**
+- `POST /quizzes/<slug>/start` — Step 10: begins a `QuizAttempt`, returns `attempt_id`
+- `POST /quizzes/<slug>/answer` — Step 10: grades one question immediately, decrements lives, awards XP (+ speed bonus from Step 11)
+- `POST /quizzes/<slug>/finish` — Step 10: closes out an attempt, runs badge checks (Step 12), returns the summary
+- `GET /leaderboard` — Step 13: ranks students by `total_xp`, optional `?class_code=` filter
+
 ## Key design decisions (don't relitigate these mid-build)
 
 - **Flat schema, not a separate Choices table** — `choice_a`..`choice_d` + `correct_choice` on `Question` itself. Classic, simple, matches "four fixed options" exactly.
 - **No exposure of correct answers before submission.** The quiz-taking page's HTML/JS must never contain `correct_choice`. Grading happens server-side in the `/submit` endpoint.
 - **No admin user table.** Credentials live in `.env` (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), compared with `secrets.compare_digest`, session flag on success.
 - **Only question images**, not per-choice images.
-- **Nothing is persisted after a quiz attempt** — no results table.
+- **Nothing is persisted after a quiz attempt** — true for the base app (steps 01–07) only. Steps 08+ supersede this: attempts, answers, XP, and badges are all persisted, tied to a nickname+class-code `Student` identity (no passwords, no other PII).
 
 ## Build order (one spec file per Opencode session)
 
@@ -156,3 +214,12 @@ No answer-choice images (question image only). No results/attempts are persisted
 7. `07-polish-deployment.md` — final build, README, deployment checklist
 
 Frontend is built before the admin panel so there's something visible and clickable early, using seeded data from step 2.
+
+**Gamification extension (TÜBİTAK 4006):**
+
+8. `08-student-identity-and-attempts.md` — nickname+class-code identity, quiz attempts start being saved
+9. `09-xp-and-levels.md` — XP per correct answer, level calculation and display
+10. `10-lives-and-limited-attempts.md` — converts grading to a per-question flow; adds lives/game-over
+11. `11-speed-bonus.md` — bonus XP for fast correct answers, extends the per-question flow
+12. `12-badges-and-achievements.md` — seeded badge set, unlock rules, display
+13. `13-leaderboard.md` — public ranking by XP, filterable by class code

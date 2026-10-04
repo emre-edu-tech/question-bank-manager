@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Geçmişim - BilişimTest{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between">
+    <h1 class="text-3xl font-extrabold text-gray-900">Geçmişim</h1>
+    <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Quizler</a>
+</div>
+
+{% if attempts %}
+<div class="mt-6 space-y-4">
+    {% for attempt in attempts %}
+    <div class="rounded-2xl bg-white p-6 shadow">
+        <h2 class="text-xl font-bold text-gray-900">{{ attempt.quiz.title }}</h2>
+        <p class="mt-1 text-sm text-gray-500">{{ attempt.score }} / {{ attempt.total_questions }} doğru • {{ attempt.completed_at.strftime('%d.%m.%Y %H:%M') if attempt.completed_at else attempt.started_at.strftime('%d.%m.%Y %H:%M') }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="mt-6 rounded-2xl bg-white p-10 text-center shadow">
+    <p class="text-4xl">📭</p>
+    <h2 class="mt-3 text-xl font-bold text-gray-900">Henüz quiz çözmedin</h2>
+    <p class="mt-2 text-gray-600">Bir quiz seç ve ilk sonucunu burada gör.</p>
+    <a href="{{ url_for('public.quiz_list') }}" class="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700">Quizlere git</a>
+</div>
+{% endif %}
+{% endblock %}
