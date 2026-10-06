@@ -15,10 +15,11 @@
                 <span>BilişimTest</span>
             </a>
             <nav class="flex items-center gap-4">
+                <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Quizler</a>
                 {% if session.get('student_id') %}
+                <a href="{{ url_for('public.my_history') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Geçmişim</a>
                 <a href="{{ url_for('public.exit_student') }}" title="Çıkış yap, sıradaki öğrenci giriş yapabilsin" class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200">👋 Çıkış</a>
                 {% endif %}
-                <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Quizler</a>
             </nav>
         </div>
     </header>

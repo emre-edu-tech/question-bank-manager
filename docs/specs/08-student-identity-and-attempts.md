@@ -109,6 +109,7 @@ Everything from here on (XP, lives, badges, leaderboard) needs to know *which st
 5. **Minimal "my history" page** (`GET /my-history`, `@student_required`)
 
     Lists the current student's past `QuizAttempt` rows (quiz title, score/total, date), newest first. This exists purely so Step 08 is end-to-end testable — there's no game mechanic here yet, just proof the data is really being saved.
+    Linked from the header nav (see task 6) so students can reach it without typing the URL.
 
 6. **Student exit** (`app/public/routes.py` + `app/templates/base.html`)
 
@@ -122,13 +123,19 @@ Everything from here on (XP, lives, badges, leaderboard) needs to know *which st
     ```
 
     Only `student_id` is popped — never `session.clear()` — so a teacher logged in as admin on the same browser stays logged in. After exit the next student lands directly on the `/play` identify form.
-    Header button in `app/templates/base.html` (inside the existing `<nav>`, before the Quizler link), rendered only when a student is identified:
+    Header nav in `app/templates/base.html`: the Quizler link stays first and always visible; a "Geçmişim" link (`url_for('public.my_history')`, same styling as Quizler) and the exit button below are rendered only when a student is identified:
 
     ```html
-    {% if session.get('student_id') %}
-    <a href="{{ url_for('public.exit_student') }}" title="Çıkış yap, sıradaki öğrenci giriş yapabilsin" class="...">👋 Çıkış</a>
-    {% endif %}
+    <nav class="flex items-center gap-4">
+        <a href="{{ url_for('public.quiz_list') }}" class="...">Quizler</a>
+        {% if session.get('student_id') %}
+        <a href="{{ url_for('public.my_history') }}" class="...">Geçmişim</a>
+        <a href="{{ url_for('public.exit_student') }}" title="Çıkış yap, sıradaki öğrenci giriş yapabilsin" class="...">👋 Çıkış</a>
+        {% endif %}
+    </nav>
     ```
+
+    "Geçmişim" shares the guard's behavior: it is hidden while anonymous (there is no history to show), and the `@student_required` decorator on `/my-history` remains the enforcement — the nav link is discoverability, not access control.
 
 ## Acceptance criteria
 
@@ -136,7 +143,7 @@ Everything from here on (XP, lives, badges, leaderboard) needs to know *which st
 - Submitting the identify form with a new nickname+class_code creates exactly one `Student` row; submitting the same pair again reuses the existing row (no duplicate).
 - Taking and submitting a quiz creates one `QuizAttempt` row and one `QuizAttemptAnswer` row per question, with correct `score` and `is_correct` values.
 - `/my-history` shows the attempt just completed.
-- The header shows no exit button while anonymous, shows a "👋 Çıkış" button linking to `/exit` once a student is identified, and hides it again after exiting.
+- The header shows neither "Geçmişim" nor an exit button while anonymous; once a student is identified it shows a "Geçmişim" link to `/my-history` plus a "👋 Çıkış" button linking to `/exit`, and hides both again after exiting.
 - Visiting `/exit` pops only `student_id` (an admin session on the same browser survives), redirects to `/play`, and afterwards `/quizzes/<slug>` redirects back to `/play?next=...`.
 - The quiz-taking UX and the submit JSON response are otherwise unchanged from Step 03 — a student notices no visible difference yet except being asked to identify themselves first.
 
