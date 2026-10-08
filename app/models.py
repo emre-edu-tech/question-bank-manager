@@ -58,6 +58,7 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nickname = db.Column(db.String(50), nullable=False)
     class_code = db.Column(db.String(20), nullable=False)
+    total_xp = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (
@@ -71,6 +72,7 @@ class QuizAttempt(db.Model):
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     score = db.Column(db.Integer, nullable=False, default=0)
     total_questions = db.Column(db.Integer, nullable=False)
+    xp_earned = db.Column(db.Integer, nullable=False, default=0)
     completed = db.Column(db.Boolean, nullable=False, default=False)
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
@@ -85,6 +87,7 @@ class QuizAttemptAnswer(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     selected_choice = db.Column(db.String(1), nullable=True)
     is_correct = db.Column(db.Boolean, nullable=False, default=False)
+    xp_awarded = db.Column(db.Integer, nullable=False, default=0)
 
     attempt = db.relationship('QuizAttempt', backref='answers')
     question = db.relationship('Question')

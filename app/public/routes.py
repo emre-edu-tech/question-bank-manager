@@ -4,6 +4,7 @@ from functools import wraps
 from flask import flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.extensions import db
+from app.gamification import XP_PER_CORRECT_ANSWER, calculate_level
 from app.models import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion, Student
 from app.public import bp
 
@@ -59,12 +60,20 @@ def exit_student():
 @bp.route("/my-history")
 @student_required
 def my_history():
+    student = Student.query.get(session['student_id'])
     attempts = (
         QuizAttempt.query.filter_by(student_id=session['student_id'])
         .order_by(QuizAttempt.id.desc())
         .all()
     )
-    return render_template("public/history.html", attempts=attempts)
+    level_number, level_name = calculate_level(student.total_xp)
+    return render_template(
+        "public/history.html",
+        attempts=attempts,
+        student=student,
+        level_number=level_number,
+        level_name=level_name,
+    )
 
 
 def _get_quiz_or_404(slug):
@@ -133,6 +142,8 @@ def quiz_submit(slug):
             {"question_id": qid, "selected_choice": selected, "is_correct": is_correct}
         )
 
+    student = Student.query.get(session['student_id'])
+
     attempt = QuizAttempt(
         student_id=session['student_id'],
         quiz_id=quiz.id,
@@ -143,15 +154,33 @@ def quiz_submit(slug):
     )
     db.session.add(attempt)
     db.session.flush()
+    attempt_xp_total = 0
     for item in per_question:
+        xp_awarded = XP_PER_CORRECT_ANSWER if item["is_correct"] else 0
         db.session.add(
             QuizAttemptAnswer(
                 attempt_id=attempt.id,
                 question_id=item["question_id"],
                 selected_choice=item["selected_choice"],
                 is_correct=item["is_correct"],
+                xp_awarded=xp_awarded,
             )
         )
+        attempt_xp_total += xp_awarded
+    attempt.xp_earned = attempt_xp_total
+    student.total_xp += attempt_xp_total
     db.session.commit()
 
-    return jsonify({"score": score, "total": len(results), "results": results})
+    level_number, level_name = calculate_level(student.total_xp)
+
+    return jsonify(
+        {
+            "score": score,
+            "total": len(results),
+            "xp_earned": attempt_xp_total,
+            "total_xp": student.total_xp,
+            "level_number": level_number,
+            "level_name": level_name,
+            "results": results,
+        }
+    )

@@ -8,6 +8,10 @@
     <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Quizler</a>
 </div>
 
+<div class="mt-4 rounded-2xl bg-white p-6 text-center shadow border-2 border-yellow-400">
+    <p class="text-xl font-extrabold text-gray-900">{{ student.total_xp }} Deneyim Puanı • Seviye {{ level_number }} ({{ level_name }})</p>
+</div>
+
 {% if attempts %}
 <div class="mt-6 space-y-4">
     {% for attempt in attempts %}

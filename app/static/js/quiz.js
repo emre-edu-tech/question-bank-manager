@@ -115,6 +115,19 @@
       if (scoreBanner && scoreText) {
         scoreText.textContent = data.score + " / " + data.total + " doğru";
         scoreBanner.classList.remove("hidden");
+        var xpText = document.getElementById("xp-text");
+        if (xpText && typeof data.xp_earned !== "undefined") {
+          xpText.textContent =
+            "+" +
+            data.xp_earned +
+            " Deneyim Puanı kazandın! Toplam: " +
+            data.total_xp +
+            " Deneyim Puanı — Seviye " +
+            data.level_number +
+            " (" +
+            data.level_name +
+            ")";
+        }
         scoreBanner.scrollIntoView({ behavior: "smooth", block: "center" });
       }
       var byId = {};
