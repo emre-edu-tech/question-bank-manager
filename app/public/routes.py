@@ -4,8 +4,8 @@ from functools import wraps
 from flask import flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.extensions import db
-from app.gamification import XP_PER_CORRECT_ANSWER, calculate_level
-from app.models import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion, Student
+from app.gamification import STARTING_LIVES, XP_PER_CORRECT_ANSWER, calculate_level
+from app.models import Question, Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion, Student
 from app.public import bp
 
 
@@ -96,91 +96,99 @@ def quiz_detail(slug):
     )
 
 
-@bp.route("/quizzes/<slug>/submit", methods=["POST"])
+@bp.route('/quizzes/<slug>/start', methods=['POST'])
 @student_required
-def quiz_submit(slug):
-    quiz = _get_quiz_or_404(slug)
-    if quiz is None:
-        return jsonify({"error": "Quiz bulunamadı."}), 404
-
-    payload = request.get_json(silent=True) or {}
-    # Accept either a flat { "<question_id>": "A" } payload (as sent by quiz.js)
-    # or a wrapped { "answers": { ... } } payload.
-    if isinstance(payload, dict) and isinstance(payload.get("answers"), dict):
-        payload = payload["answers"]
-
-    quiz_questions = (
-        QuizQuestion.query.filter_by(quiz_id=quiz.id)
-        .order_by(QuizQuestion.order)
-        .all()
-    )
-
-    valid_choices = ("A", "B", "C", "D")
-    results = []
-    score = 0
-    per_question = []
-    for qq in quiz_questions:
-        question = qq.question
-        qid = question.id
-        selected = payload.get(str(qid))
-        if selected is None:
-            selected = payload.get(qid)
-        if selected not in valid_choices:
-            selected = None
-        is_correct = selected == question.correct_choice
-        if is_correct:
-            score += 1
-        results.append(
-            {
-                "question_id": qid,
-                "selected": selected,
-                "correct_choice": question.correct_choice,
-                "is_correct": is_correct,
-            }
-        )
-        per_question.append(
-            {"question_id": qid, "selected_choice": selected, "is_correct": is_correct}
-        )
-
-    student = Student.query.get(session['student_id'])
-
+def start_attempt(slug):
+    quiz = Quiz.query.filter_by(slug=slug).first_or_404()
     attempt = QuizAttempt(
         student_id=session['student_id'],
         quiz_id=quiz.id,
-        total_questions=len(quiz_questions),
-        score=score,
-        completed=True,
-        completed_at=datetime.utcnow(),
+        total_questions=len(quiz.quiz_questions),
+        lives_remaining=STARTING_LIVES,
+        completed=False,
     )
     db.session.add(attempt)
-    db.session.flush()
-    attempt_xp_total = 0
-    for item in per_question:
-        xp_awarded = XP_PER_CORRECT_ANSWER if item["is_correct"] else 0
-        db.session.add(
-            QuizAttemptAnswer(
-                attempt_id=attempt.id,
-                question_id=item["question_id"],
-                selected_choice=item["selected_choice"],
-                is_correct=item["is_correct"],
-                xp_awarded=xp_awarded,
-            )
-        )
-        attempt_xp_total += xp_awarded
-    attempt.xp_earned = attempt_xp_total
-    student.total_xp += attempt_xp_total
+    db.session.commit()
+    return jsonify({"attempt_id": attempt.id, "lives_remaining": attempt.lives_remaining})
+
+
+@bp.route('/quizzes/<slug>/answer', methods=['POST'])
+@student_required
+def answer_question(slug):
+    data = request.get_json()
+    attempt = QuizAttempt.query.get_or_404(data['attempt_id'])
+
+    if attempt.student_id != session['student_id'] or attempt.completed:
+        return jsonify({"error": "invalid attempt"}), 400
+
+    question = Question.query.get_or_404(data['question_id'])
+    selected = data.get('selected_choice')
+    is_correct = (selected == question.correct_choice)
+
+    xp_awarded = XP_PER_CORRECT_ANSWER if is_correct else 0
+
+    answer = QuizAttemptAnswer(
+        attempt_id=attempt.id,
+        question_id=question.id,
+        selected_choice=selected,
+        is_correct=is_correct,
+        xp_awarded=xp_awarded,
+    )
+    db.session.add(answer)
+
+    if is_correct:
+        attempt.score += 1
+        attempt.xp_earned += xp_awarded
+    else:
+        attempt.lives_remaining -= 1
+
+    game_over = attempt.lives_remaining <= 0
+    if game_over:
+        attempt.completed = True
+        attempt.completed_at = datetime.utcnow()
+
+    db.session.commit()
+
+    return jsonify({
+        "is_correct": is_correct,
+        "correct_choice": question.correct_choice,
+        "lives_remaining": attempt.lives_remaining,
+        "xp_awarded": xp_awarded,
+        "game_over": game_over,
+    })
+
+
+@bp.route('/quizzes/<slug>/finish', methods=['POST'])
+@student_required
+def finish_attempt(slug):
+    data = request.get_json()
+    attempt = QuizAttempt.query.get_or_404(data['attempt_id'])
+
+    if attempt.student_id != session['student_id']:
+        return jsonify({"error": "invalid attempt"}), 400
+
+    if not attempt.completed:
+        attempt.completed = True
+        attempt.completed_at = datetime.utcnow()
+
+    student = Student.query.get(session['student_id'])
+    # Idempotency guard: /finish may be retried (double-click, auto-finish
+    # racing the last answer). Credit this attempt's XP exactly once per
+    # browser session without adding new schema.
+    credited = session.get('credited_attempts', [])
+    if attempt.id not in credited:
+        student.total_xp += attempt.xp_earned
+        credited.append(attempt.id)
+        session['credited_attempts'] = credited
     db.session.commit()
 
     level_number, level_name = calculate_level(student.total_xp)
-
-    return jsonify(
-        {
-            "score": score,
-            "total": len(results),
-            "xp_earned": attempt_xp_total,
-            "total_xp": student.total_xp,
-            "level_number": level_number,
-            "level_name": level_name,
-            "results": results,
-        }
-    )
+    return jsonify({
+        "score": attempt.score,
+        "total": attempt.total_questions,
+        "xp_earned": attempt.xp_earned,
+        "total_xp": student.total_xp,
+        "level_number": level_number,
+        "level_name": level_name,
+        "lives_remaining": attempt.lives_remaining,
+    })

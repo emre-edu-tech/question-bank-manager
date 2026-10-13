@@ -5,12 +5,22 @@
 {% block content %}
 <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Tüm quizler</a>
 <h1 class="mt-2 text-3xl font-extrabold text-gray-900">{{ quiz.title }}</h1>
-<p class="mt-1 text-gray-500">{{ quiz_questions|length }} soru • Bir şık seç, sonra en alttaki düğmeye bas.</p>
+<p class="mt-1 text-gray-500">{{ quiz_questions|length }} soru • Bir şıkka dokun, cevabın hemen kontrol edilsin. 3 canın var!</p>
+
+<div class="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-white p-4 shadow border-2 border-red-200">
+    <span id="lives-hearts" class="text-2xl tracking-wider">❤️❤️❤️</span>
+    <span id="lives-text" class="font-bold text-gray-700">3 canın kaldı</span>
+</div>
+
+<div id="gameover-banner" class="hidden mt-6 rounded-2xl bg-white p-6 text-center shadow border-2 border-red-500">
+    <p class="text-3xl font-extrabold text-red-700">Oyun Bitti!</p>
+    <p class="mt-1 text-gray-600">Canların tükendi. Sonuçların aşağıda.</p>
+</div>
 
 <div id="score-banner" class="hidden mt-6 rounded-2xl bg-white p-6 text-center shadow border-2 border-blue-300">
     <p id="score-text" class="text-3xl font-extrabold text-gray-900"></p>
     <p id="xp-text" class="mt-2 inline-block rounded-full bg-yellow-100 px-4 py-1 font-bold text-yellow-900"></p>
-    <p class="mt-1 text-gray-600">Cevapların aşağıda yeşil ve kırmızı ile işaretlendi.</p>
+    <p class="mt-1 text-gray-600">Cevapların yukarıda yeşil ve kırmızı ile işaretlendi.</p>
 </div>
 
 <p id="quiz-error" class="hidden mt-4 rounded-xl bg-yellow-100 border-2 border-yellow-400 p-4 font-medium text-yellow-900"></p>
@@ -34,14 +44,9 @@
             </label>
             {% endfor %}
         </div>
-        <p class="unanswered-warning hidden mt-3 rounded-xl bg-yellow-100 border-2 border-yellow-400 p-3 font-medium text-yellow-900">⚠️ Bu soruyu cevaplamadın — bir şık seç.</p>
+        <p class="answer-feedback hidden mt-3 rounded-xl p-3 font-bold"></p>
     </section>
     {% endfor %}
-</div>
-
-<div class="mt-8 text-center">
-    <button id="submit-btn" type="button" class="w-full sm:w-auto rounded-xl bg-green-600 px-10 py-4 text-xl font-bold text-white shadow hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">Cevapları Gönder</button>
-    <p class="mt-2 text-sm text-gray-500">Gönderdikten sonra cevaplar değiştirilemez.</p>
 </div>
 {% endblock %}
 

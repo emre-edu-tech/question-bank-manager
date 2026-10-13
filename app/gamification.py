@@ -1,4 +1,5 @@
 XP_PER_CORRECT_ANSWER = 10
+STARTING_LIVES = 3
 
 LEVEL_THRESHOLDS = [
     (0, 1, "Çaylak"),

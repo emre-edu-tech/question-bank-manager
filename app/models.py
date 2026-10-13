@@ -73,6 +73,7 @@ class QuizAttempt(db.Model):
     score = db.Column(db.Integer, nullable=False, default=0)
     total_questions = db.Column(db.Integer, nullable=False)
     xp_earned = db.Column(db.Integer, nullable=False, default=0)
+    lives_remaining = db.Column(db.Integer, nullable=True)
     completed = db.Column(db.Boolean, nullable=False, default=False)
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
