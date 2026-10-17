@@ -4,7 +4,12 @@ from functools import wraps
 from flask import flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.extensions import db
-from app.gamification import STARTING_LIVES, XP_PER_CORRECT_ANSWER, calculate_level
+from app.gamification import (
+    STARTING_LIVES,
+    XP_PER_CORRECT_ANSWER,
+    calculate_level,
+    calculate_speed_bonus,
+)
 from app.models import Question, Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion, Student
 from app.public import bp
 
@@ -125,13 +130,22 @@ def answer_question(slug):
     selected = data.get('selected_choice')
     is_correct = (selected == question.correct_choice)
 
-    xp_awarded = XP_PER_CORRECT_ANSWER if is_correct else 0
+    time_taken = data.get('time_taken_seconds')
+    xp_awarded = 0
+    speed_bonus = 0
+
+    if is_correct:
+        xp_awarded = XP_PER_CORRECT_ANSWER
+        if time_taken is not None:
+            speed_bonus = calculate_speed_bonus(time_taken)
+            xp_awarded += speed_bonus
 
     answer = QuizAttemptAnswer(
         attempt_id=attempt.id,
         question_id=question.id,
         selected_choice=selected,
         is_correct=is_correct,
+        time_taken_seconds=time_taken,
         xp_awarded=xp_awarded,
     )
     db.session.add(answer)
@@ -154,6 +168,7 @@ def answer_question(slug):
         "correct_choice": question.correct_choice,
         "lives_remaining": attempt.lives_remaining,
         "xp_awarded": xp_awarded,
+        "speed_bonus": speed_bonus,
         "game_over": game_over,
     })
 

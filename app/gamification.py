@@ -10,6 +10,14 @@ LEVEL_THRESHOLDS = [
 ]
 
 
+def calculate_speed_bonus(time_taken_seconds: float) -> int:
+    if time_taken_seconds <= 10:
+        return 5
+    elif time_taken_seconds <= 20:
+        return 2
+    return 0
+
+
 def calculate_level(total_xp: int):
     """Returns (level_number, level_name) for a given XP total."""
     current = LEVEL_THRESHOLDS[0]

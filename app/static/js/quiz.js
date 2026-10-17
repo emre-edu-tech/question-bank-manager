@@ -29,6 +29,9 @@
     var maxLives = 3;
     var answeredCount = 0;
     var finished = false;
+    var quizStartTime = Date.now();
+    var firstInteractionMs = {}; // question_id -> ms since quiz start
+    var lastInteractionMs = 0;
 
     function showError(message) {
       if (errorBox) {
@@ -98,7 +101,14 @@
       });
     }
 
-    function paintAnswer(card, selected, correctChoice, isCorrect) {
+    function paintAnswer(
+      card,
+      selected,
+      correctChoice,
+      isCorrect,
+      xpAwarded,
+      speedBonus
+    ) {
       var labels = card.querySelectorAll(".choice-label");
       labels.forEach(function (label) {
         var choice = label.getAttribute("data-choice");
@@ -127,6 +137,10 @@
         feedback.classList.remove("hidden");
         if (isCorrect) {
           feedback.textContent = "✅ Doğru!";
+          if (speedBonus > 0) {
+            feedback.textContent +=
+              " +" + xpAwarded + " XP (+" + speedBonus + " hız bonusu!)";
+          }
           feedback.classList.add("bg-green-100", "text-green-900");
           feedback.classList.remove("bg-red-100", "text-red-900");
         } else {
@@ -201,6 +215,16 @@
       hideError();
       var qid = card.getAttribute("data-question-id");
 
+      // Elapsed time since this question was first interacted with, minus
+      // the previous question's interaction time (0 for the first question).
+      var firstMs = firstInteractionMs[qid];
+      if (typeof firstMs === "undefined") {
+        firstMs = Date.now() - quizStartTime;
+        firstInteractionMs[qid] = firstMs;
+      }
+      var timeTakenSeconds = Math.max(0, (firstMs - lastInteractionMs) / 1000);
+      lastInteractionMs = firstMs;
+
       fetch("/quizzes/" + encodeURIComponent(slug) + "/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -208,6 +232,7 @@
           attempt_id: attemptId,
           question_id: parseInt(qid, 10),
           selected_choice: selected,
+          time_taken_seconds: timeTakenSeconds,
         }),
       })
         .then(function (resp) {
@@ -218,7 +243,14 @@
         })
         .then(function (data) {
           answeredCount += 1;
-          paintAnswer(card, selected, data.correct_choice, data.is_correct);
+          paintAnswer(
+            card,
+            selected,
+            data.correct_choice,
+            data.is_correct,
+            data.xp_awarded,
+            data.speed_bonus
+          );
           if (typeof data.lives_remaining !== "undefined") {
             updateLives(data.lives_remaining);
           }
@@ -243,6 +275,19 @@
           );
         });
     }
+
+    // Record the first interaction time per question (for speed bonus).
+    cards.forEach(function (card) {
+      var qid = card.getAttribute("data-question-id");
+      var inputs = card.querySelectorAll(".choice-input");
+      inputs.forEach(function (input) {
+        input.addEventListener("change", function () {
+          if (!(qid in firstInteractionMs)) {
+            firstInteractionMs[qid] = Date.now() - quizStartTime;
+          }
+        });
+      });
+    });
 
     cards.forEach(function (card) {
       var inputs = card.querySelectorAll(".choice-input");
