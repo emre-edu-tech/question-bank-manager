@@ -88,6 +88,7 @@ class QuizAttemptAnswer(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     selected_choice = db.Column(db.String(1), nullable=True)
     is_correct = db.Column(db.Boolean, nullable=False, default=False)
+    time_taken_seconds = db.Column(db.Float, nullable=True)
     xp_awarded = db.Column(db.Integer, nullable=False, default=0)
 
     attempt = db.relationship('QuizAttempt', backref='answers')
