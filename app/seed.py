@@ -1,10 +1,33 @@
 from app.extensions import db
-from app.models import Question, Quiz, QuizQuestion, Topic
+from app.models import Badge, Question, Quiz, QuizQuestion, Topic
+
+BADGES = [
+    ("ilk-adim", "İlk Adım", "İlk quizini tamamladın"),
+    ("mukemmel-skor", "Mükemmel Skor", "Bir quizde tüm soruları doğru bildin"),
+    ("hiz-ustasi", "Hız Ustası", "Bir denemede 3 veya daha fazla hız bonusu kazandın"),
+    ("azimli", "Azimli", "Toplam 5 quiz tamamladın"),
+    ("hayatta-kalan", "Hayatta Kalan", "Hiç can kaybetmeden bir quizi bitirdin"),
+    ("seviye-5", "Seviye 5", "Efsane seviyesine ulaştın"),
+]
+
+
+def seed_badges():
+    """Adds any badge codes that are missing. Safe to run repeatedly."""
+    existing_codes = {code for (code,) in db.session.query(Badge.code).all()}
+    added = 0
+    for code, name, description in BADGES:
+        if code not in existing_codes:
+            db.session.add(Badge(code=code, name=name, description=description))
+            added += 1
+    return added
 
 
 def register_seed_command(app):
     @app.cli.command("seed-db")
     def seed_db():
+        seed_badges()
+        db.session.commit()
+
         if Topic.query.count() > 0:
             print("Database already seeded, nothing to do.")
             return

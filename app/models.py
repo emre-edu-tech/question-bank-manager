@@ -93,3 +93,22 @@ class QuizAttemptAnswer(db.Model):
 
     attempt = db.relationship('QuizAttempt', backref='answers')
     question = db.relationship('Question')
+
+
+class Badge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(30), unique=True, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(200), nullable=False)
+
+
+class StudentBadge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    badge_id = db.Column(db.Integer, db.ForeignKey('badge.id'), nullable=False)
+    earned_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    student = db.relationship('Student', backref='student_badges')
+    badge = db.relationship('Badge')
+
+    __table_args__ = (db.UniqueConstraint('student_id', 'badge_id', name='uq_student_badge'),)
