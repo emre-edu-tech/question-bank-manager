@@ -7,7 +7,7 @@ BADGES = [
     ("hiz-ustasi", "Hız Ustası", "Bir denemede 3 veya daha fazla hız bonusu kazandın"),
     ("azimli", "Azimli", "Toplam 5 quiz tamamladın"),
     ("hayatta-kalan", "Hayatta Kalan", "Hiç can kaybetmeden bir quizi bitirdin"),
-    ("seviye-5", "Seviye 5", "Efsane seviyesine ulaştın"),
+    ("seviye-5", "Efsane", "500 deneyim puanı toplayarak en üst seviyeye ulaştın"),
 ]
 
 
