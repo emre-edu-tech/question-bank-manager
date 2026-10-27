@@ -9,6 +9,8 @@
   // border-red-600 bg-red-100 text-red-900 border-gray-200 bg-gray-50
   // border-yellow-400 bg-yellow-100 bg-green-100 bg-red-100
   // opacity-60 pointer-events-none
+  // bg-yellow-50 border-yellow-400 text-yellow-900 text-yellow-800
+  // space-y-2 text-left
 
   function init() {
     var container = document.getElementById("quiz-container");
@@ -172,6 +174,28 @@
       }
     }
 
+    function showBadges(badges) {
+      var box = document.getElementById("new-badges");
+      if (!box || !badges || badges.length === 0) {
+        return;
+      }
+      badges.forEach(function (badge) {
+        var card = document.createElement("div");
+        card.className =
+          "rounded-xl border-2 border-yellow-400 bg-yellow-50 p-3 text-left";
+        var title = document.createElement("p");
+        title.className = "font-extrabold text-yellow-900";
+        title.textContent = "🏅 Yeni rozet: " + badge.name;
+        var description = document.createElement("p");
+        description.className = "text-sm text-yellow-800";
+        description.textContent = badge.description;
+        card.appendChild(title);
+        card.appendChild(description);
+        box.appendChild(card);
+      });
+      box.classList.remove("hidden");
+    }
+
     function finishAttempt() {
       if (finished || attemptId === null) {
         return;
@@ -193,6 +217,7 @@
             updateLives(data.lives_remaining);
           }
           showSummary(data);
+          showBadges(data.new_badges);
         })
         .catch(function () {
           finished = false;

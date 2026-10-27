@@ -9,8 +9,17 @@ from app.gamification import (
     XP_PER_CORRECT_ANSWER,
     calculate_level,
     calculate_speed_bonus,
+    check_and_award_badges,
 )
-from app.models import Question, Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion, Student
+from app.models import (
+    Badge,
+    Question,
+    Quiz,
+    QuizAttempt,
+    QuizAttemptAnswer,
+    QuizQuestion,
+    Student,
+)
 from app.public import bp
 
 
@@ -79,6 +88,15 @@ def my_history():
         level_number=level_number,
         level_name=level_name,
     )
+
+
+@bp.route("/my-badges")
+@student_required
+def my_badges():
+    student = Student.query.get(session['student_id'])
+    earned = {sb.badge_id: sb for sb in student.student_badges}
+    badges = Badge.query.order_by(Badge.id).all()
+    return render_template("public/badges.html", badges=badges, earned=earned)
 
 
 def _get_quiz_or_404(slug):
@@ -198,6 +216,10 @@ def finish_attempt(slug):
     db.session.commit()
 
     level_number, level_name = calculate_level(student.total_xp)
+
+    newly_awarded = check_and_award_badges(student, attempt)
+    db.session.commit()
+
     return jsonify({
         "score": attempt.score,
         "total": attempt.total_questions,
@@ -206,4 +228,8 @@ def finish_attempt(slug):
         "level_number": level_number,
         "level_name": level_name,
         "lives_remaining": attempt.lives_remaining,
+        "new_badges": [
+            {"code": b.code, "name": b.name, "description": b.description}
+            for b in newly_awarded
+        ],
     })

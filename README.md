@@ -101,15 +101,21 @@ optional image) and hand-assembled Quizzes.
    you can get `encoding` error. That's why create files using a text
    editor instead.
 
-9. **Seed sample data (optional, dev only)**
+9. **Seed sample data and badges**
 
    ```bash
    flask seed-db
    ```
 
-   Seeding is optional — only for local testing. There is a guard that
-   refuses to run on a non-empty database, so it can never duplicate or
-   overwrite real content.
+   Sample topics, questions and a demo quiz are optional — only for local
+   testing. There is a guard that refuses to add them on a non-empty
+   database, so it can never duplicate or overwrite real content.
+
+   The same command also seeds the six achievement badges (`ilk-adim`,
+   `mukemmel-skor`, `hiz-ustasi`, `azimli`, `hayatta-kalan`, `seviye-5`).
+   Badges are admin-seeded, not admin-editable, so run `flask seed-db` on
+   the production server too after `flask db upgrade`. It only inserts
+   missing badge codes, so running it again never creates duplicates.
 
 10. **Run the dev server**
 
