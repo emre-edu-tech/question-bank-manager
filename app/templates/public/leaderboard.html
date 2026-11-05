@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Liderlik Tablosu - BilişimTest{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between">
+    <h1 class="text-3xl font-extrabold text-gray-900">Liderlik Tablosu</h1>
+    <a href="{{ url_for('public.quiz_list') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Quizler</a>
+</div>
+
+<form method="get" action="{{ url_for('public.leaderboard') }}" class="mt-6 flex flex-wrap items-center gap-2">
+    <input type="text" name="class_code" value="{{ class_code_filter or '' }}" placeholder="Sınıf kodu (örn. 7A)" class="rounded-xl border-2 border-gray-200 px-4 py-2 text-sm focus:border-blue-400 focus:outline-none">
+    <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">Filtrele</button>
+    <a href="{{ url_for('public.leaderboard') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Tüm Sınıflar</a>
+</form>
+
+{% if rows %}
+<div class="mt-6 overflow-hidden rounded-2xl bg-white shadow">
+    <table class="w-full text-left">
+        <thead>
+            <tr class="border-b-2 border-gray-100 text-sm text-gray-500">
+                <th class="px-6 py-4">#</th>
+                <th class="px-6 py-4">Takma ad</th>
+                <th class="px-6 py-4">Sınıf</th>
+                <th class="px-6 py-4">Seviye</th>
+                <th class="px-6 py-4">Deneyim</th>
+                <th class="px-6 py-4">Rozet</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            {% set medal = {1: '🥇', 2: '🥈', 3: '🥉'}.get(row.rank, '') %}
+            <tr class="border-b border-gray-50 {% if row.rank == 1 %}border-l-4 border-l-yellow-400 bg-yellow-50{% elif row.rank == 2 %}border-l-4 border-l-gray-300 bg-gray-50{% elif row.rank == 3 %}border-l-4 border-l-orange-300 bg-orange-50{% endif %}">
+                <td class="px-6 py-4 font-bold text-gray-900">{% if medal %}{{ medal }}{% else %}{{ row.rank }}{% endif %}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ row.nickname }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ row.class_code }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ row.level_name }}</td>
+                <td class="px-6 py-4 font-bold text-blue-600">{{ row.total_xp }} XP</td>
+                <td class="px-6 py-4 text-gray-600">🏅 {{ row.badge_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="mt-6 rounded-2xl bg-white p-10 text-center shadow">
+    <p class="text-4xl">📭</p>
+    <h2 class="mt-3 text-xl font-bold text-gray-900">Henüz kimse quiz çözmedi!</h2>
+    <p class="mt-2 text-gray-600">İlk sıraya yerleşmek için bir quiz çöz.</p>
+    <a href="{{ url_for('public.quiz_list') }}" class="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700">Quizlere git</a>
+</div>
+{% endif %}
+{% endblock %}

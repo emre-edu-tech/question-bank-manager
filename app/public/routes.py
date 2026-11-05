@@ -99,6 +99,32 @@ def my_badges():
     return render_template("public/badges.html", badges=badges, earned=earned)
 
 
+@bp.route('/leaderboard')
+def leaderboard():
+    class_code = request.args.get('class_code', '').strip().upper() or None
+
+    query = Student.query
+    if class_code:
+        query = query.filter_by(class_code=class_code)
+
+    students = query.order_by(Student.total_xp.desc()).limit(50).all()
+
+    rows = []
+    for rank, student in enumerate(students, start=1):
+        level_number, level_name = calculate_level(student.total_xp)
+        badge_count = len(student.student_badges)
+        rows.append({
+            "rank": rank,
+            "nickname": student.nickname,
+            "class_code": student.class_code,
+            "total_xp": student.total_xp,
+            "level_name": level_name,
+            "badge_count": badge_count,
+        })
+
+    return render_template('public/leaderboard.html', rows=rows, class_code_filter=class_code)
+
+
 def _get_quiz_or_404(slug):
     return Quiz.query.filter_by(slug=slug).first()
 
